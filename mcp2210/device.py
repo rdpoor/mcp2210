@@ -1,7 +1,6 @@
 import hid
 from mcp2210 import commands
-import time
-
+import ctypes
 
 class CommandException(Exception):
     """Thrown when the MCP2210 returns an error status code."""
@@ -73,7 +72,7 @@ class EEPROMData(object):
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            return ''.join(self[i] for i in range(*key.indices(255)))
+            return b''.join(self[i] for i in range(*key.indices(255)))
         else:
             return chr(self._device.sendCommand(commands.ReadEEPROMCommand(key)).header.reserved)
 
@@ -122,7 +121,7 @@ class MCP2210(object):
         self.eeprom = EEPROMData(self)
         self.cancel_transfer()
 
-    def sendCommand(self, command):
+    def sendCommand(self, command, check = True):
         """Sends a Command object to the MCP2210 and returns its response.
 
         Arguments:
@@ -131,11 +130,12 @@ class MCP2210(object):
         Returns:
             A commands.Response instance, or raises a CommandException on error.
         """
-        command_data = [ord(x) for x in buffer(command)]
+        command_data = ctypes.create_string_buffer(ctypes.sizeof(command))
+        ctypes.memmove(command_data, ctypes.addressof(command), ctypes.sizeof(command))
         self.hid.write(command_data)
-        response_data = ''.join(chr(x) for x in self.hid.read(64))
+        response_data = bytes(self.hid.read(64))
         response = command.RESPONSE.from_buffer_copy(response_data)
-        if response.status != 0:
+        if response.status != 0 and check:
             raise CommandException(response.status)
         return response
 
@@ -209,15 +209,26 @@ class MCP2210(object):
         settings.spi_tx_size = len(data)
         self.transfer_settings = settings
 
-        response = ''
+        response = b''
         for i in range(0, len(data), 60):
-            response += self.sendCommand(commands.SPITransferCommand(data[i:i + 60])).data
-            time.sleep(0.01)
+            status = 1
+            while status != 0:
+                r = self.sendCommand(commands.SPITransferCommand(data[i:i + 60]), check=False)
+                status = r.status
+                if status not in (0, 0xf8) :
+                    raise CommandException(status)
+            response += r.data
 
         while len(response) < len(data):
-            response += self.sendCommand(commands.SPITransferCommand('')).data
+            status = 1
+            while status != 0:
+                r = self.sendCommand(commands.SPITransferCommand(b''), check=False)
+                status = r.status
+                if status not in (0, 0xf8) :
+                    raise CommandException(status)
+            response += r.data
 
-        return ''.join(response)
+        return response
 
     def cancel_transfer(self):
         """Cancels any ongoing transfers."""
