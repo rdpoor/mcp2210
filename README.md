@@ -19,24 +19,43 @@ or, clone this repository and install from source:
     >>> dev = MCP2210(my_vid, my_pid)
     >>> dev.transfer("data")
 
-In addition to making transfers, device settings can be accessed and modified:
+If you have more than one MCP2210 on the USB chain, you can use its USB path
+with the `path` keyword in the in the constructor:
+
+    >>> from mcp2210 import MCP2210
+    >>> import hid
+    >>> descriptors = hid.enumerate(MCP2210.VID, MCP2210.PID) # multiple devs
+    >>> dev = MCP2210(path=descriptors[0]['path'])    # open first on the list
+    >>> dev.transfer("data")
+
+
+In addition to making SPI bus transfers, device settings can be accessed and
+modified:
 
     >>> dev.manufacturer_name = "Foobar Industries Ltd"
-    >>> print dev.manufacturer_name
+    >>> print(dev.manufacturer_name)
     Foobar Industries Ltd
-    
+
     >>> dev.product_name = "Foobinator 1.0"
-    >>> print dev.product_name
+    >>> print(dev.product_name)
     Foobinator 1.0
-    
+
     >>> settings = dev.boot_chip_settings
     >>> settings.pin_designations[0] = 0x01  # GPIO 0 to chip select
     >>> dev.boot_chip_settings = settings  # Settings are updated on property assignment
-    
+
     >>> spisettings = dev.boot_transfer_settings
     >>> spisettings.idle_cs = 0x01
     >>> spisettings.active_cs = 0x00  # Set pin 1 to go low on chip select
     >>> dev.boot_transfer_settings = spisettings
+
+... and you can read and write the 256 byte EEPROM:
+
+    >>> dev.eeprom[10:14] = [2, 4, 8, 16]
+    >>> print(dev.eeprom[10:14])
+    [2, 4, 8, 16]
+    >>> print(dev.eeprom[12])
+    8
 
 `chip_settings` and `boot_chip_settings` define basic settings such as GPIO pin assignments. `transfer_settings` and `boot_transfer_settings` define SPI settings such as data rate, chip select value, and inter-byte timings. `boot_usb_settings` defines USB configuration options like VID, PID, and power requirements. On boot, the MCP2210 copies `boot_transfer_settings` and `boot_chip_settings` into `transfer_settings` and `chip_settings` respectively.
 
