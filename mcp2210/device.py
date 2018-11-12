@@ -65,30 +65,46 @@ def remote_property(name, get_command, set_command, field_name, doc=None):
 
 
 class EEPROMData(object):
-    """Represents data stored in the MCP2210 EEPROM."""
+    """Represents data stored in the MCP2210 EEPROM.
+
+    Usage:
+        >>> uint8 = dev.eeprom[0]            # read a single uint8 from EEPROM
+        >>> uint8s = dev.eeprom[i:j]         # read a list of uint8 from EEPROM
+        >>> dev.eeprom[0] = uint8            # write a single uint8 to EEPROM
+        >>> dev.eeprom[i:j] = uint8s         # write list of uint8 to EEPROM
+    """
 
     def __init__(self, device):
         self._device = device
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            return b''.join(self[i] for i in range(*key.indices(255)))
+            return [self[i] for i in range(*key.indices(255))]
         else:
-            return chr(self._device.sendCommand(commands.ReadEEPROMCommand(key)).header.reserved)
+            return self._device.sendCommand(commands.ReadEEPROMCommand(key)).data
 
     def __setitem__(self, key, value):
         if isinstance(key, slice):
             for i, j in enumerate(range(*key.indices(255))):
                 self[j] = value[i]
         else:
-            self._device.sendCommand(commands.WriteEEPROMCommand(key, ord(value)))
+            self._device.sendCommand(commands.WriteEEPROMCommand(key, value))
 
+
+# ==============================================================================
+# MCP2210
 
 class MCP2210(object):
     """MCP2210 device interface.
 
     Usage:
         >>> dev = MCP2210(my_vid, my_pid)
+        >>> dev.transfer("data")
+    or
+        >>> dev = MCP2210()                 # defaults to VID=0x04d8, PID=0x00de
+        >>> dev.transfer("data")
+    or
+        >>> dev = MCP2210(path="USB Path")  # open via enumerated pathname
         >>> dev.transfer("data")
 
     Advanced usage:
@@ -107,15 +123,25 @@ class MCP2210(object):
     See the MCP2210 datasheet (http://ww1.microchip.com/downloads/en/DeviceDoc/22288A.pdf) for full details
     on available commands and arguments.
     """
-    def __init__(self, vid, pid):
+
+    VID = 0x04d8
+    PID = 0x00de
+
+    def __init__(self, vid=VID, pid=PID, path=None):
         """Constructor.
 
         Arguments:
-          vid: Vendor ID
-          pid: Product ID
+          vid: Vendor ID (default = 0x04d8, i.e. Microchip)
+          pid: Product ID (default = 0x00de, i.e. MCP2210)
+          path: USB pathname returned by hid.enumerate()
+
+        If path is provided, takes precedence over vid and pid.
         """
         self.hid = hid.device()
-        self.hid.open(vid, pid)
+        if path != None:
+            self.hid.open_path(path)
+        else:
+            self.hid.open(vid, pid)
         self.gpio_direction = GPIOSettings(self, commands.GetGPIODirectionCommand, commands.SetGPIODirectionCommand)
         self.gpio = GPIOSettings(self, commands.GetGPIOValueCommand, commands.SetGPIOValueCommand)
         self.eeprom = EEPROMData(self)

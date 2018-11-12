@@ -1,0 +1,9 @@
+README.md
+mcp2210/__init__.py
+mcp2210/commands.py
+mcp2210/device.py
+mcp2210.egg-info/PKG-INFO
+mcp2210.egg-info/SOURCES.txt
+mcp2210.egg-info/dependency_links.txt
+mcp2210.egg-info/requires.txt
+mcp2210.egg-info/top_level.txt
