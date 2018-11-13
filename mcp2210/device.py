@@ -147,6 +147,9 @@ class MCP2210(object):
         self.eeprom = EEPROMData(self)
         self.cancel_transfer()
 
+    def close(self):
+        self.hid.close()
+
     def sendCommand(self, command, check = True):
         """Sends a Command object to the MCP2210 and returns its response.
 

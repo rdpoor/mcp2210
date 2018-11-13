@@ -1,10 +1,10 @@
 Metadata-Version: 1.0
 Name: mcp2210
-Version: 0.1.4
+Version: 0.1.5
 Summary: Python interface for the MCP2210 USB-SPI interface
-Home-page: https://github.com/arachnidlabs/mcp2210/
-Author: Nick Johnson
-Author-email: nick@arachnidlabs.com
+Home-page: https://github.com/rdpoor/mcp2210/
+Author: Robert Poor
+Author-email: rdpoor@gmail.com
 License: UNKNOWN
 Description: UNKNOWN
 Platform: UNKNOWN

@@ -7,3 +7,4 @@ mcp2210.egg-info/SOURCES.txt
 mcp2210.egg-info/dependency_links.txt
 mcp2210.egg-info/requires.txt
 mcp2210.egg-info/top_level.txt
+tests/test_mcp2210.py
