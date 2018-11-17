@@ -1,4 +1,5 @@
 README.md
+setup.py
 mcp2210/__init__.py
 mcp2210/commands.py
 mcp2210/device.py
