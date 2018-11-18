@@ -298,7 +298,6 @@ class SPITransferResponse(Structure):
     def data(self):
         return bytes(self._data[:self.length])
 
-
 class SPITransferCommand(Structure):
     COMMAND = 0x42
     RESPONSE = SPITransferResponse
@@ -319,7 +318,6 @@ class DeviceStatusResponse(Response):
                 ('bus_owner', c_ubyte),
                 ('password_attempts', c_ubyte),
                 ('password_guessed', c_ubyte)]
-
 
 class CancelTransferCommand(Command):
     COMMAND = 0x11
