@@ -1,6 +1,7 @@
 import hid
 from mcp2210 import commands
 import ctypes
+import platform
 
 class CommandException(Exception):
     """Thrown when the MCP2210 returns an error status code."""
@@ -159,6 +160,10 @@ class MCP2210(object):
         Returns:
             A commands.Response instance, or raises a CommandException on error.
         """
+        if platform.system() == 'Windows':
+            # For reasons I don't understand, HID commands for Windows require an
+            # extra leading 0x0 byte -- rdpoor@gmail.com, July 2020 
+            command = [0x0] + command
         command_data = ctypes.create_string_buffer(ctypes.sizeof(command))
         ctypes.memmove(command_data, ctypes.addressof(command), ctypes.sizeof(command))
         self.hid.write(command_data)
