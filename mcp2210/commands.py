@@ -92,11 +92,11 @@ class SetUSBStringCommand(SetBootSettingsCommand):
 
     @property
     def string(self):
-        return bytes(self.str[:self.str_len - 2]).decode('utf16')
+        return bytes(self.str[:self.str_len - 2]).decode('utf-16-le')
 
     @string.setter
     def string(self, value):
-        for i, x in enumerate((value + '\0').encode('utf16')):
+        for i, x in enumerate((value + '\0').encode('utf-16-le')):
             self.str[i] = ord(x)
         self.str_len = len(value) * 2 + 4
 
@@ -167,7 +167,7 @@ class GetUSBStringResponse(Response):
 
     @property
     def string(self):
-        return bytes(self.str[:self.str_len - 2]).decode('utf16')
+        return bytes(self.str[:self.str_len - 2]).decode('utf-16-le')
 
 
 class GetUSBProductCommand(GetBootSettingsCommand):
