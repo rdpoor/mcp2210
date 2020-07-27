@@ -97,7 +97,7 @@ class SetUSBStringCommand(SetBootSettingsCommand):
     @string.setter
     def string(self, value):
         for i, x in enumerate((value + '\0').encode('utf-16-le')):
-            self.str[i] = ord(x)
+            self.str[i] = x
         self.str_len = len(value) * 2 + 4
 
 
